@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using StarCorpBot.Models;
 using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -13,12 +14,16 @@ namespace StarCorpBot.Services
     {
         public static ITelegramBotClient botClient;
         public static CancellationToken cancellationToken;
+        public static Update update;
         public static IConfiguration configuration;
-        public TelegramServices(IConfiguration _configuration, ITelegramBotClient _botClient, CancellationToken _cancellationToken)
+        public string ChatId = string.Empty;
+        public TelegramServices(IConfiguration _configuration, ITelegramBotClient _botClient, Update _update, CancellationToken _cancellationToken)
         {
             configuration = _configuration;
             botClient = _botClient;
+            update = _update;
             cancellationToken = _cancellationToken;
+            ChatId = (_update?.Message?.Chat?.Id ?? _update?.CallbackQuery?.Message?.Chat?.Id)?.ToString();
         }
         public async Task SendDailyTasks(RedmineTaskModel responseMessage, DateTime date, RedmineServices redmineServices, string? username = null)
         {
@@ -117,7 +122,7 @@ namespace StarCorpBot.Services
         {
             await Task.Delay(TimeSpan.FromSeconds(2));
 
-            var chatId = configuration.GetSection("Chat-Id").Value;
+            var chatId = ChatId;
             Message sentMessage;
 
             if (inlineKeyboardMarkup is null)

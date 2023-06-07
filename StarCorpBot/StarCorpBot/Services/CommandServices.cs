@@ -40,7 +40,7 @@ namespace StarCorpBot.Services
         }
         public static List<BotCommandModel> LoadCommandsMenu()
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "CommandsMenu.resx");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Commands.resx");
 
             XmlDocument doc = new XmlDocument();
             doc.Load(filePath);

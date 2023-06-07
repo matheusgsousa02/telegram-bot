@@ -117,24 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Get Tasks By User" xml:space="preserve">
-    <value>/getuser</value>
-    <comment>Get tasks by email user - /gettasksbyuser {username}</comment>
-  </data>
-  <data name="Start" xml:space="preserve">
+  <data name="01-Start" xml:space="preserve">
     <value>/start</value>
-    <comment>Start bot</comment>
+    <comment>Iniciar Bot</comment>
   </data>
-  <data name="Task On Date" xml:space="preserve">
-    <value>/tasksondate</value>
-    <comment>Get tasks for a specific date</comment>
+  <data name="02-Help" xml:space="preserve">
+    <value>/help</value>
+    <comment>Aprenda a usar todos os comandos do bot.</comment>
   </data>
-  <data name="Today Tasks" xml:space="preserve">
-    <value>/todaytasks</value>
-    <comment>Get tasks for today</comment>
+  <data name="03-Day Tasks" xml:space="preserve">
+    <value>/daytasks</value>
+    <comment>Buscar as tarefas do dia dos funcionários.</comment>
   </data>
-  <data name="Yesterday Tasks" xml:space="preserve">
-    <value>/yesterdaytasks</value>
-    <comment>Get tasks for yesterday</comment>
+  <data name="04-Previous Day Tasks" xml:space="preserve">
+    <value>/prevdaytasks</value>
+    <comment>Buscar as tarefas do dia anterior dos funcionários.</comment>
+  </data>
+  <data name="05-Tasks By Date" xml:space="preserve">
+    <value>/tasksbydate</value>
+    <comment>Buscar as tarefas do dia dos funcionários, baseado em uma data específica.</comment>
+  </data>
+  <data name="06-User Date Tasks" xml:space="preserve">
+    <value>/userdatetasks</value>
+    <comment>Buscar as tarefas do dia de um funcionário específico, baseado no usuário e a data desejada</comment>
   </data>
 </root>

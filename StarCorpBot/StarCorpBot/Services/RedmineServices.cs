@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using StarCorpBot.Models;
 
 namespace StarCorpBot.Services
 {

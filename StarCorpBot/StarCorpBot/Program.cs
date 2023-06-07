@@ -2,6 +2,8 @@
 using StarCorpBot;
 using StarCorpBot.Resources;
 using StarCorpBot.Services;
+using System.Resources;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -46,111 +48,117 @@ internal class Program
 
         async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            var telegramServices = new TelegramServices(config, botClient, cancellationToken);
+            Message message = update.Message ?? new Message();
+            string messageText = (message.Text ?? string.Empty).ToLower();
+
+            CallbackQuery callback = update.CallbackQuery ?? new CallbackQuery();
+            string callbackText = (callback.Data ?? string.Empty).ToLower();
+
+            var telegramServices = new TelegramServices(config, botClient, update, cancellationToken);
             var redmineServices = new RedmineServices(config);
-            switch (update.Type)
+            var responseMessage = new RedmineTaskModel();
+
+            DateTime date = DateTime.Now;
+            bool isValid;
+            string format = "yyyy-MM-dd";
+            string[] args = Array.Empty<string>();
+
+            switch (true)
             {
-                case UpdateType.Message:
-                    if (update.Message is not { } message)
-                        return;
-
-                    if (message.Text is not { } messageText)
-                        return;
-
-                    var responseMessage = new RedmineTaskModel();
-
-                    string lowerText = message.Text.ToLower();
-
-                    if (lowerText.StartsWith($"{Commands.Start}"))
-                    {
-                        await telegramServices.SendMessage("Escolha uma opção:", KeyboardServices.CreateGetTasksKeyboard());
-                    }
-                    else if (lowerText.StartsWith($"{Commands.Today_Tasks}"))
-                    {
-                        var date = DateTime.Now;
-                        responseMessage = await redmineServices.GetDailyTasks(date);
-                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
-                    }
-                    else if (lowerText.StartsWith($"{Commands.Yesterday_Tasks}"))
-                    {
-                        var date = DateTime.Now.AddDays(-1);
-                        responseMessage = await redmineServices.GetDailyTasks(date);
-                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
-                    }
-                    else if (lowerText.StartsWith($"{Commands.Task_On_Date}"))
-                    {
-                        await telegramServices.SendMessage("Qual o dia desejado?", KeyboardServices.CreateDayKeyboard());
-                    }
-                    else if (lowerText.StartsWith($"{Commands.Get_Tasks_By_User}"))
-                    {
-                        var username = lowerText.Split(" ");
-
-                        if (username?.Length < 2)
-                        {
-                            await telegramServices.SendMessage("Usuario não encontrado!");
-                        }
-                        else
-                        {
-                            var date = DateTime.Now;
-                            responseMessage = await redmineServices.GetDailyTasks(date, username[1]);
-                            await telegramServices.SendDailyTasks(responseMessage, date, redmineServices, username[1]);
-                        }
-                    }
-                    else
-                    {
-                        await telegramServices.SendMessage("Não entendi ?!");
-                    }
+                case true when messageText.StartsWith($"{Commands._01_Start}"):
+                    await telegramServices.SendMessage("Escolha uma opção:", KeyboardServices.CreateGetTasksKeyboard());
                     break;
-                case UpdateType.CallbackQuery:
-                    if (update.CallbackQuery.Data.StartsWith($"command_{CommandsMenu.Today_Tasks}"))
+                case true when messageText.StartsWith($"{Commands._02_Help}"):
+                case true when callbackText.StartsWith($"command_{Commands._02_Help}"):
+                    var commands = CommandServices.LoadCommands();
+                    var messageHelp =
+@$"Comandos:
+{Commands._01_Start} - {commands.FirstOrDefault(c => c.Command == Commands._01_Start)?.Description}
+{Commands._02_Help} - {commands.FirstOrDefault(c => c.Command == Commands._02_Help)?.Description}
+{Commands._03_Day_Tasks} - {commands.FirstOrDefault(c => c.Command == Commands._03_Day_Tasks)?.Description}                                 
+{Commands._04_Previous_Day_Tasks} - {commands.FirstOrDefault(c => c.Command == Commands._04_Previous_Day_Tasks)?.Description}
+{Commands._05_Tasks_By_Date} Optional: {{yyyy-MM-dd}} -  {commands.FirstOrDefault(c => c.Command == Commands._05_Tasks_By_Date)?.Description}
+{Commands._06_User_Date_Tasks} {{username}} Optional: {{yyyy-MM-dd}} - {commands.FirstOrDefault(c => c.Command == Commands._06_User_Date_Tasks)?.Description}
+";
+                    await telegramServices.SendMessage(messageHelp.ToString());
+                    break;
+                case true when messageText.StartsWith($"{Commands._03_Day_Tasks}"):
+                case true when callbackText.StartsWith($"command_{Commands._03_Day_Tasks}"):
+                    responseMessage = await redmineServices.GetDailyTasks(date);
+                    await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
+                    break;
+                case true when messageText.StartsWith($"{Commands._04_Previous_Day_Tasks}"):
+                case true when callbackText.StartsWith($"command_{Commands._04_Previous_Day_Tasks}"):
+                    date = DateTime.Now.AddDays(-1);
+                    responseMessage = await redmineServices.GetDailyTasks(date);
+                    await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
+                    break;
+                case true when messageText.StartsWith($"{Commands._05_Tasks_By_Date}"):
+                case true when callbackText.StartsWith($"command_{Commands._05_Tasks_By_Date}"):
+                    args = messageText.Split(' ');
+                    if (args.Length > 1)
                     {
-                        var date = DateTime.Now;
-                        responseMessage = await redmineServices.GetDailyTasks(date);
-                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
-                    }
-                    else if (update.CallbackQuery.Data.StartsWith($"command_{CommandsMenu.Yesterday_Tasks}"))
-                    {
-                        var date = DateTime.Now.AddDays(-1);
-                        responseMessage = await redmineServices.GetDailyTasks(date);
-                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
-                    }
-                    else if (update.CallbackQuery.Data.StartsWith($"command_{CommandsMenu.Task_On_Date}"))
-                    {
-                        await telegramServices.SendMessage("Qual o dia desejado?", KeyboardServices.CreateDayKeyboard());
-                    }
-                    else if (update.CallbackQuery.Data.StartsWith("day_"))
-                    {
-                        var day = update.CallbackQuery.Data.Replace("day_", "");
-
-                        await telegramServices.SendMessage("Qual o mes desejado?", KeyboardServices.CreateMonthKeyboard(day.PadLeft(2, char.Parse("0"))));
-                    }
-                    else if (update.CallbackQuery.Data.StartsWith("month_"))
-                    {
-                        var month = update.CallbackQuery.Data.Split("_");
-                        await telegramServices.SendMessage("Qual o ano desejado?", KeyboardServices.CreateYearKeyboard($"{month[1].PadLeft(2, char.Parse("0"))}-{month[2]}"));
-                    }
-                    else if (update.CallbackQuery.Data.StartsWith("year_"))
-                    {
-                        var year = update.CallbackQuery.Data.Split("_");
-
-                        string format = "yyyy-MM-dd";
-
-                        DateTime date;
-                        bool isValid = DateTime.TryParseExact($"{year[1]}-{year[2]}", format, null, System.Globalization.DateTimeStyles.None, out date);
-
+                        isValid = DateTime.TryParseExact($"{args[1]}", format, null, System.Globalization.DateTimeStyles.None, out date);
                         if (isValid)
                         {
                             responseMessage = await redmineServices.GetDailyTasks(date);
                             await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
+                            break;
                         }
-                        else
-                        {
-                            await telegramServices.SendMessage("Data inválida!");
-                        }
+                        await telegramServices.SendMessage("Data inválida!");
+                        break;
                     }
-                    
+                    await telegramServices.SendMessage("Qual o dia desejado?", KeyboardServices.CreateDayKeyboard());
+                    break;
+                case true when messageText.StartsWith($"{Commands._06_User_Date_Tasks}"):
+                case true when callbackText.StartsWith($"command_{Commands._06_User_Date_Tasks}"):
+                    if (update.Type == UpdateType.CallbackQuery)
+                    {
+                        await telegramServices.SendMessage($"Uso do comando Inválido! O comando '{Commands._06_User_Date_Tasks}' é necessário parametros!");
+                        break;
+                    }
+                    args = messageText.Split(' ');
+                    if (args.Length > 1)
+                    {
+                        if (args.Length > 2)
+                        {
+                            isValid = DateTime.TryParseExact($"{args[2]}", format, null, System.Globalization.DateTimeStyles.None, out date);
+                            if (isValid)
+                            {
+                                responseMessage = await redmineServices.GetDailyTasks(date, args[1]);
+                                await telegramServices.SendDailyTasks(responseMessage, date, redmineServices, args[1]);
+                                break;
+                            }
+                            await telegramServices.SendMessage("Data inválida!");
+                            break;
+                        }
+                        responseMessage = await redmineServices.GetDailyTasks(date, args[1]);
+                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices, args[1]);
+                        break;
+                    }
+                    await telegramServices.SendMessage("Formato do comando inválido!");
+                    break;
+                case true when callbackText.StartsWith("day_"):
+                    var day = callbackText.Replace("day_", "");
+                    await telegramServices.SendMessage("Qual o mes desejado?", KeyboardServices.CreateMonthKeyboard(day.PadLeft(2, char.Parse("0"))));
+                    break;
+                case true when callbackText.StartsWith("month_"):
+                    var month_day = callbackText.Split("_");
+                    await telegramServices.SendMessage("Qual o ano desejado?", KeyboardServices.CreateYearKeyboard($"{month_day[1].PadLeft(2, char.Parse("0"))}-{month_day[2]}"));
+                    break;
+                case true when callbackText.StartsWith("year_"):
+                    var year_month_day = callbackText.Split("_");
+                    isValid = DateTime.TryParseExact($"{year_month_day[1]}-{year_month_day[2]}", format, null, System.Globalization.DateTimeStyles.None, out date);
+                    if (isValid)
+                    {
+                        responseMessage = await redmineServices.GetDailyTasks(date);
+                        await telegramServices.SendDailyTasks(responseMessage, date, redmineServices);
+                        break;
+                    }
+                    await telegramServices.SendMessage("Data inválida!");
                     break;
                 default:
+                    await telegramServices.SendMessage("Não Entendi?!");
                     break;
             }
         }

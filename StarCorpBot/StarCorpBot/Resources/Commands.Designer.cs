@@ -61,47 +61,56 @@ namespace StarCorpBot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /getuser.
-        /// </summary>
-        internal static string Get_Tasks_By_User {
-            get {
-                return ResourceManager.GetString("Get Tasks By User", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to /start.
         /// </summary>
-        internal static string Start {
+        internal static string _01_Start {
             get {
-                return ResourceManager.GetString("Start", resourceCulture);
+                return ResourceManager.GetString("01-Start", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /tasksondate.
+        ///   Looks up a localized string similar to /help.
         /// </summary>
-        internal static string Task_On_Date {
+        internal static string _02_Help {
             get {
-                return ResourceManager.GetString("Task On Date", resourceCulture);
+                return ResourceManager.GetString("02-Help", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /todaytasks.
+        ///   Looks up a localized string similar to /daytasks.
         /// </summary>
-        internal static string Today_Tasks {
+        internal static string _03_Day_Tasks {
             get {
-                return ResourceManager.GetString("Today Tasks", resourceCulture);
+                return ResourceManager.GetString("03-Day Tasks", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /yesterdaytasks.
+        ///   Looks up a localized string similar to /prevdaytasks.
         /// </summary>
-        internal static string Yesterday_Tasks {
+        internal static string _04_Previous_Day_Tasks {
             get {
-                return ResourceManager.GetString("Yesterday Tasks", resourceCulture);
+                return ResourceManager.GetString("04-Previous Day Tasks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /tasksbydate.
+        /// </summary>
+        internal static string _05_Tasks_By_Date {
+            get {
+                return ResourceManager.GetString("05-Tasks By Date", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /userdatetasks.
+        /// </summary>
+        internal static string _06_User_Date_Tasks {
+            get {
+                return ResourceManager.GetString("06-User Date Tasks", resourceCulture);
             }
         }
     }
